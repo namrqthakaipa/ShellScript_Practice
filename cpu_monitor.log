@@ -1,0 +1,28 @@
+
+CPU_THRESHOLD=30
+
+LOG_FILE="/opt/shell_script/cpu_monitor.log"
+
+MAX_LOG_SIZE=1024
+
+TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+
+if [ -f "$LOG_FILE" ]; then
+        FILE_SIZE=$(stat -c %s "$LOG_FILE")
+        if [ "$FILE_SIZE" -ge "$MAX_LOG_SIZE" ]; then
+        echo "$TIMESTAMP - Log file size exceeded $MAX_LOG_SIZE bytes, deleting the log." >> "$LOG_FILE"
+        rm -f "$LOG_FILE"
+        fi
+fi
+
+echo "$TIMESTAMP - Starting CPU monitor script" >> $LOG_FILE
+
+
+# Get the CPU utilization
+CPU_UTILIZATION=$(mpstat 1 1 | grep "Average" | awk '{print 100 - $12}')
+echo "$TIMESTAMP - CPU utilization: $CPU_UTILIZATION%" >> $LOG_FILE
+
+
+# Check if CPU utilization exceeds the threshold
+if (( $(echo "$CPU_UTILIZATION > $CPU_THRESHOLD" | bc -l) )); then
+   echo "$TIMESTAMP - ALERT: CPU utilization has exceeded $CPU_THRESHOLD%! Current utilization is $CPU_UTILIZATION%" >> $LOG_FILE
