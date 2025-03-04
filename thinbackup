@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Define backup directory
+BACKUP_DIR="/opt/backup"
+
+# Ensure backup directory exists
+mkdir -p "$BACKUP_DIR"
+
+# Create a timestamped folder
+TIMESTAMP=$(date "+%Y-%m-%d_%H-%M-%S")
+NEW_FOLDER="$BACKUP_DIR/$TIMESTAMP"
+mkdir -p "$NEW_FOLDER"
+
+echo "Starting Jenkins backup at $NEW_FOLDER"
+
+# Copy Jenkins home directory 
+rsync -av --exclude="workspace/*" /var/lib/jenkins/ "$NEW_FOLDER/"
+
+# Create a compressed archive 
+tar -czf "$BACKUP_DIR/jenkins_backup_$TIMESTAMP.tar.gz" -C "$NEW_FOLDER" .
+
+echo "Backup completed successfully: $NEW_FOLDER"
